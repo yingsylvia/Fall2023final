@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include <algorithm>
 #include <vector>
-#include <cmath> // Include cmath for log and other mathematical functions
+#include <cmath> 
 #include "../xll/xll/ensure.h"
 
 namespace fre::vswap {
@@ -48,23 +48,19 @@ namespace fre::vswap {
 		}
 
 		// second derivative at x[1], ..., x[n-2]
-		std::vector<double> delta() {
-			std::vector<double> deltas(x.size(), 0.0);
+		std::vector<double> delta() const {
+			std::vector<double> deltas(x.size() - 1, 0.0);
 			return deltas;
 		}
-		double contribution(double f, double k, double p, double c) {
-			if (k <= 0) {
-				throw std::invalid_argument("Strike price cannot be zero or negative");
-			}
-			
-			double v = -2 * std::log(k / f) + 2 * (k - f) / f;
-			return (k < f) ? p * v : c * v;
-		}
-
-		double variance(double f, size_t n, const double* k, const double* p, const double* c) {
+		double variance(double f, size_t n, const double* k, const double* p, const double* c) const {
 			double var = 0.0;
 			for (size_t i = 0; i < n; ++i) {
-				var += contribution(f, k[i], p[i], c[i]);
+				if (k[i] <= 0) {
+					throw std::invalid_argument("Strike price cannot be zero or negative");
+				}
+				double term = -2 * std::log(k[i] / f) + 2 * (k[i] - f) / f;
+				double value = (k[i] < f) ? p[i] : c[i];
+				var += value * term;
 			}
 			return var / n;
 		}
