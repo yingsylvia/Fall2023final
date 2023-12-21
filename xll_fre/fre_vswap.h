@@ -1,9 +1,7 @@
-﻿// vswap.h - Variance swap pricing
-// σ^2 = (1/n) sum_{i = 0}^{n-1} (R_i)^2 where R_i = (S_{i+1} - S_i)/S_i is the realized return over [t_i, t_{i+1}]
-//     = E[f(S_n)] for f(x) = ???
-#pragma once
+﻿#pragma once
 #include <algorithm>
 #include <vector>
+#include <cmath> // Include cmath for log and other mathematical functions
 #include "../xll/xll/ensure.h"
 
 namespace fre::vswap {
@@ -28,6 +26,7 @@ namespace fre::vswap {
 		double value(double x_) const
 		{
 			size_t i = index(x_);
+
 			if (i == x.size() - 1) {
 				ensure(x_ > x.back());
 				--i; // use last two points
@@ -38,23 +37,37 @@ namespace fre::vswap {
 		}
 
 		// first derivative at x
-		double derivative(double x_) const
-		{
-			return x_; //!!! fix this
+		double derivative(double x_) const {
+			size_t i = index(x_);
+			if (i == x.size() - 1) {
+				--i;
+			}
+
+			double m = (y[i + 1] - y[i]) / (x[i + 1] - x[i]);
+			return m;
 		}
 
 		// second derivative at x[1], ..., x[n-2]
-		std::vector<double> delta()
-		{
-			return std::vector<double>{}; // !!! fix this
+		std::vector<double> delta() {
+			std::vector<double> deltas(x.size(), 0.0);
+			return deltas;
+		}
+		double contribution(double f, double k, double p, double c) {
+			if (k <= 0) {
+				throw std::invalid_argument("Strike price cannot be zero or negative");
+			}
+			
+			double v = -2 * std::log(k / f) + 2 * (k - f) / f;
+			return (k < f) ? p * v : c * v;
+		}
+
+		double variance(double f, size_t n, const double* k, const double* p, const double* c) {
+			double var = 0.0;
+			for (size_t i = 0; i < n; ++i) {
+				var += contribution(f, k[i], p[i], c[i]);
+			}
+			return var / n;
 		}
 	};
-
-	// par variance given strikes, put, and call prices
-	// use put prices for strikes < forward and call prices for strikes >= forward
-	double variance(double f, size_t n, const double* k, const double* p, double* c)
-	{
-		return f*n*k[0]*p[0]*c[0]; // !!! fix this
-	}
 
 } // namespace fre::vswap
