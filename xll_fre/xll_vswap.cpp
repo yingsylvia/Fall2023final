@@ -19,15 +19,13 @@ AddIn xai_vswap(
 
 double WINAPI xll_vswap(double f, const _FP12* k, const _FP12* p, const _FP12* c) {
 #pragma XLLEXPORT
-	// Assume that 'x' and 'y' arrays are provided or calculated elsewhere
-	// For demonstration purposes, we'll create dummy arrays based on the size 'n'
-	std::vector<double> x(k->rows, 0.0); // You need actual x values
-	std::vector<double> y(k->rows, 0.0); // You need actual y values
+	
+	std::vector<double> x(k->rows, 0.0);
+	std::vector<double> y(k->rows, 0.0); 
 
-	// Assuming 'x' and 'y' are correctly calculated for your piecewise linear curve
-	// Now create an instance of pwlinear
+	
 	pwlinear pl(k->rows, x.data(), y.data());
 
-	// Call the variance member function
+	
 	return pl.variance(f, k->rows, k->array, p->array, c->array);
 }
